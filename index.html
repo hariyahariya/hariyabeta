@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turtle Heart</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@1,400&display=swap">
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background: #000;
+    color: #ff2d2d;
+    font-family: system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 1.1rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  canvas {
+    width: min(92vw, 56vh, 800px);
+    aspect-ratio: 1;
+  }
+  .love {
+    margin: 0;
+    font-family: "Great Vibes", "Dancing Script", "Brush Script MT", cursive;
+    font-size: clamp(2.4rem, 11vw, 3.6rem);
+    font-weight: 400;
+    letter-spacing: .06em;
+    color: #ffe3ea;
+    text-shadow: 0 0 6px rgba(255, 60, 90, .9),
+                 0 0 22px rgba(255, 30, 60, .6),
+                 0 0 46px rgba(255, 0, 40, .4);
+    opacity: 0;
+    transform: translateY(10px) scale(.96);
+    transition: opacity 1.8s ease, transform 1.8s ease;
+    user-select: none;
+  }
+  .love.show {
+    opacity: 1;
+    transform: none;
+    animation: glow 2.6s ease-in-out 1.8s infinite alternate;
+  }
+  @keyframes glow {
+    from {
+      text-shadow: 0 0 4px rgba(255, 60, 90, .7),
+                   0 0 16px rgba(255, 30, 60, .4),
+                   0 0 32px rgba(255, 0, 40, .25);
+    }
+    to {
+      text-shadow: 0 0 8px rgba(255, 90, 120, 1),
+                   0 0 30px rgba(255, 30, 60, .8),
+                   0 0 60px rgba(255, 0, 40, .55);
+    }
+  }
+
+  /* ===== Lirik ===== */
+  .lyrics {
+    min-height: 3.6em;
+    padding: 0 22px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity .5s ease;
+  }
+  .lyrics.show { opacity: 1; }
+  .l1 {
+    margin: 0;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-style: italic;
+    font-size: clamp(1.05rem, 4.8vw, 1.45rem);
+    color: #ffd6e0;
+    text-shadow: 0 0 10px rgba(255, 60, 90, .5);
+  }
+  .l2 {
+    margin: 4px 0 0;
+    font-size: .78rem;
+    letter-spacing: .04em;
+    color: #ff8fa3;
+    opacity: .75;
+  }
+
+  /* ===== Pop up pesan ===== */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, .88);
+    backdrop-filter: blur(6px);
+    transition: opacity .9s ease, visibility .9s ease;
+  }
+  .overlay.hide { opacity: 0; visibility: hidden; }
+  .card {
+    width: min(86vw, 340px);
+    padding: 34px 26px 28px;
+    text-align: center;
+    color: #ffe3ea;
+    background: linear-gradient(160deg, rgba(40, 0, 10, .95), rgba(10, 0, 3, .95));
+    border: 1px solid rgba(255, 60, 90, .45);
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(255, 30, 60, .3),
+                inset 0 0 20px rgba(255, 30, 60, .08);
+    animation: pop .8s cubic-bezier(.2, .9, .3, 1.2);
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: scale(.85) translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .card .icon {
+    font-size: 2.2rem;
+    color: #ff2d4d;
+    text-shadow: 0 0 16px rgba(255, 30, 60, .9);
+    animation: beat 1.4s ease-in-out infinite;
+  }
+  @keyframes beat {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.18); }
+  }
+  .card h2 {
+    margin: 10px 0 6px;
+    font-family: "Great Vibes", "Dancing Script", "Brush Script MT", cursive;
+    font-size: 2.4rem;
+    font-weight: 400;
+    letter-spacing: .04em;
+    text-shadow: 0 0 14px rgba(255, 60, 90, .6);
+  }
+  .card p {
+    margin: 0 0 22px;
+    font-size: .9rem;
+    line-height: 1.6;
+    opacity: .8;
+  }
+  .card button {
+    font-family: inherit;
+    font-size: .78rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(135deg, #ff2d4d, #c4002a);
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 28px;
+    cursor: pointer;
+    box-shadow: 0 0 18px rgba(255, 30, 60, .55);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .card button:hover  { transform: scale(1.05); }
+  .card button:active { transform: scale(.97); }
+
+  /* ===== Layar hitam saat pindah halaman ===== */
+  .fade {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.3s ease;
+  }
+  .fade.on { opacity: 1; pointer-events: all; }
+</style>
+</head>
+<body>
+  <!-- Pop up pesan -->
+  <div class="overlay" id="overlay">
+    <div class="card">
+      <div class="icon">♥</div>
+      <h2>Untuk Rani</h2>
+      <p>Hallo Rani ada sesuatu dari Beta.<br>Semoga suka.</p>
+      <button id="openBtn">Buka</button>
+    </div>
+  </div>
+
+  <h1>Putri Rani Rahmawati</h1>
+  <canvas id="c" width="800" height="800"></canvas>
+  <p class="love" id="love">I love you</p>
+
+  <div class="lyrics" id="lyrics">
+    <p class="l1" id="l1"></p>
+    <p class="l2" id="l2"></p>
+  </div>
+
+  <audio id="song" src="lagu/self%20aware.mp3" preload="auto"></audio>
+  <div class="fade" id="fade"></div>
+
+<script>
+  const LYRICS = [
+    { start: 3.0,  end: 5.3,  text: "Just don't hang your hopes on me",  tr: "Jangan gantungkan harapanmu padaku" },
+    { start: 5.9,  end: 7.9,  text: "I wanna feel something",  tr: "Aku ingin merasakan sesuatu" },
+    { start: 8.0,  end: 10.0, text: "God, you look so pretty",  tr: "Tuhan, kau terlihat begitu cantik" },
+    { start: 10.9, end: 14.9, text: "When you tell me that you love me",  tr: "Saat kau bilang bahwa kau mencintaku" },
+    { start: 15.0, end: 17.9, text: "I wish that I could lie",  tr: "Aku berharap aku bisa berbohong" },
+    { start: 18.0, end: 20.9, text: "But my mind gets in the way",  tr: "Tapi pikiranku menghalangi" },
+    { start: 21.0, end: 23.5, text: "I know you think that I'm",  tr: "Aku tahu kau pikir aku" },
+    { start: 23.7, end: 25.9, text: "Always way too self-aware",  tr: "Selalu terlalu sadar diri" },
+    { start: 26.0, end: 29.6, text: "Oh, we could never be together",  tr: "Oh, kita takkan pernah bisa bersama" },
+    { start: 29.8, end: 32.6, text: "But it's nice to play pretend", tr: "Tapi rasanya menyenangkan berpura-pura" },
+    { start: 32.8, end: 35.6, text: "I wish that I could lie", tr: "Aku berharap aku bisa berbohong" },
+    { start: 35.8, end: 39.8, text: "But I'm way too self-aware", tr: "Tapi aku terlalu sadar diri" }
+  ];
+
+  const OFFSET = 1.0; // lirik muncul 1 detik lebih cepat (0 = normal)
+</script>
+<script>
+
+</script>
+
+<script>
+  /* Ambil lirik dari blok di atas. Kalau kosong, halaman tetap jalan tanpa lirik. */
+  const LYRIC_LIST = (typeof LYRICS !== "undefined") ? LYRICS : [];
+  const SHIFT = (typeof OFFSET !== "undefined") ? OFFSET : 1.0;
+
+  const LOVE_BEFORE_END = 6; // hati selesai & "I love you" muncul 6 detik sebelum lagu habis
+
+  /* ===== Hati ===== */
+  const canvas = document.getElementById("c");
+  const g = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+
+  function heart(n) {
+    const x = 15 * Math.pow(Math.sin(n), 3);
+    const y = 12 * Math.cos(n) - 5 * Math.cos(2 * n)
+            - 2 * Math.cos(3 * n) - Math.cos(4 * n);
+    return [x, y];
+  }
+
+  const pts = [[0, 0]];
+  for (let i = 0; i < 16; i++) {
+    for (let j = 0; j < 100; j++) {
+      const [x, y] = heart(j / 15);
+      pts.push([x * i, y * i]);
+    }
+  }
+
+  const S = 1.6;
+  const cx = W / 2, cy = H / 2 - 56;
+  const toX = x => cx + x * S;
+  const toY = y => cy - y * S;
+  const total = pts.length - 1;
+
+  // tf = posisi di jalur (boleh pecahan agar gerakannya mulus)
+  function render(tf) {
+    g.fillStyle = "#000";
+    g.fillRect(0, 0, W, H);
+    if (tf <= 0) return;
+
+    const k = Math.min(Math.floor(tf), total);
+    let ex = pts[k][0], ey = pts[k][1];
+    if (k < total) {
+      const f = tf - k;
+      ex += (pts[k + 1][0] - ex) * f;
+      ey += (pts[k + 1][1] - ey) * f;
+    }
+
+    g.strokeStyle = "red";
+    g.lineWidth = 4;
+    g.lineJoin = "round";
+    g.lineCap = "round";
+    g.beginPath();
+    g.moveTo(toX(pts[0][0]), toY(pts[0][1]));
+    for (let i = 1; i <= k; i++) g.lineTo(toX(pts[i][0]), toY(pts[i][1]));
+    g.lineTo(toX(ex), toY(ey));
+    g.stroke();
+
+    if (tf < total) {
+      g.fillStyle = "#fff";
+      g.beginPath();
+      g.arc(toX(ex), toY(ey), 5, 0, Math.PI * 2);
+      g.fill();
+    }
+  }
+
+  /* ===== Elemen ===== */
+  const love = document.getElementById("love");
+  const song = document.getElementById("song");
+  const fade = document.getElementById("fade");
+  const lyricsBox = document.getElementById("lyrics");
+  const l1 = document.getElementById("l1");
+  const l2 = document.getElementById("l2");
+  const overlay = document.getElementById("overlay");
+  const openBtn = document.getElementById("openBtn");
+
+  let current = -1;
+  let ended = false;
+
+  function updateLyrics(time) {
+    const now = time + SHIFT;
+    const idx = LYRIC_LIST.findIndex(c => now >= c.start && now < c.end);
+    if (idx !== current) {
+      current = idx;
+      lyricsBox.classList.remove("show");
+      setTimeout(() => {
+        if (current === idx && idx >= 0) {
+          l1.textContent = LYRIC_LIST[idx].text;
+          l2.textContent = LYRIC_LIST[idx].tr;
+          lyricsBox.classList.add("show");
+        }
+      }, 350);
+    }
+  }
+
+  /* ===== Satu loop untuk semuanya, mengikuti waktu lagu ===== */
+  function frame() {
+    const dur = (isFinite(song.duration) && song.duration > 0) ? song.duration : 40.6;
+    const doneAt = Math.max(dur - LOVE_BEFORE_END, 5);
+    const p = Math.min(song.currentTime / doneAt, 1);
+
+    render(p * total);
+    if (p >= 1) love.classList.add("show");
+    updateLyrics(song.currentTime);
+
+    if (!ended) requestAnimationFrame(frame);
+  }
+
+  /* ===== Lagu habis → halaman berikutnya ===== */
+  song.addEventListener("ended", () => {
+    ended = true;
+    render(total);
+    love.classList.add("show");
+    setTimeout(() => {
+      fade.classList.add("on");
+      setTimeout(() => { window.location.href = "beta.html"; }, 1400);
+    }, 1200);
+  });
+
+  /* ===== Pop up + mulai ===== */
+  render(0);
+
+  openBtn.addEventListener("click", () => {
+    song.play().catch(() => {});
+    overlay.classList.add("hide");
+    frame();
+  }, { once: true });
+</script>
+</body>
+</html>
